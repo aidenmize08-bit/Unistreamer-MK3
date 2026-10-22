@@ -14,8 +14,19 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.7
-      - run: gradle assembleDebug --no-daemon --console=plain
+      - name: Build
+        run: |
+          FILE=$(find . -name settings.gradle.kts -not -path './.git/*' | head -n 1)
+          if [ -z "$FILE" ]; then
+            echo "settings.gradle.kts not found. Repo contents:"
+            find . -not -path './.git/*' | head -60
+            exit 1
+          fi
+          DIR=$(dirname "$FILE")
+          echo "Building in $DIR"
+          cd "$DIR"
+          gradle assembleDebug --no-daemon --console=plain
       - uses: actions/upload-artifact@v4
         with:
           name: StreamBrowser-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: "**/build/outputs/apk/debug/*.apk"
